@@ -4,6 +4,8 @@
 authoritative, and own the room in corporate meetings and sales pitches — with proof
 you're improving.
 
+**Live:** https://articulation-coach-mu.vercel.app
+
 A mobile-first PWA built from the evidence synthesis in
 [`RESEARCH_AND_SPEC.md`](../articulation-coach/RESEARCH_AND_SPEC.md) (49 cited sources).
 
