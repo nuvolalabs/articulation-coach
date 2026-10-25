@@ -3,7 +3,6 @@ import SessionView from './components/SessionView.jsx'
 import DrillsView from './components/DrillsView.jsx'
 import PlanView from './components/PlanView.jsx'
 import ProgressView from './components/ProgressView.jsx'
-import { loadSessions } from './lib/storage.js'
 
 const TABS = [
   { id: 'session', label: 'Session' },
@@ -12,13 +11,16 @@ const TABS = [
   { id: 'drills', label: 'Drills' }
 ]
 
-export default function App() {
+export default function App({
+  sessions = [],
+  onSaved,
+  onReset,
+  user,
+  onSignOut,
+  syncing = false
+}) {
   const [tab, setTab] = useState('session')
-  const [sessions, setSessions] = useState(() => loadSessions())
-
-  function refresh() {
-    setSessions(loadSessions())
-  }
+  const refresh = onSaved || (() => {})
 
   return (
     <div className="app">
@@ -30,11 +32,18 @@ export default function App() {
             <div className="brand-tag">10 minutes a day · speak like a leader</div>
           </div>
         </div>
+        <div className="topbar-right">
+          {syncing && <span className="sync-dot" title="Syncing…" />}
+          {user?.email && <span className="who" title={user.email}>{user.email}</span>}
+          {onSignOut && (
+            <button className="btn ghost small" onClick={onSignOut}>Sign out</button>
+          )}
+        </div>
       </header>
 
       <main className="content">
         {tab === 'session' && <SessionView sessions={sessions} onSaved={refresh} />}
-        {tab === 'progress' && <ProgressView sessions={sessions} onReset={refresh} />}
+        {tab === 'progress' && <ProgressView sessions={sessions} onReset={onReset || refresh} />}
         {tab === 'plan' && <PlanView sessions={sessions} />}
         {tab === 'drills' && <DrillsView />}
       </main>

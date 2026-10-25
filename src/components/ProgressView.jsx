@@ -1,4 +1,4 @@
-import { summarise, clarityTrend, clearSessions } from '../lib/storage.js'
+import { summarise, clarityTrend } from '../lib/storage.js'
 
 function Sparkline({ points }) {
   if (!points.length) return null
@@ -23,6 +23,11 @@ export default function ProgressView({ sessions, onReset }) {
   const s = summarise(sessions)
   const trend = clarityTrend(sessions)
   const recent = [...sessions].sort((a, b) => b.ts - a.ts).slice(0, 8)
+
+  async function reset() {
+    if (!window.confirm('Delete all your saved sessions? This cannot be undone.')) return
+    await onReset?.()
+  }
 
   return (
     <div className="progress">
@@ -73,9 +78,7 @@ export default function ProgressView({ sessions, onReset }) {
         ))}
       </div>
 
-      <button className="btn ghost small" onClick={() => { clearSessions(); onReset() }}>
-        Reset my data
-      </button>
+      <button className="btn ghost small" onClick={reset}>Reset my data</button>
     </div>
   )
 }

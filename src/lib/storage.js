@@ -1,48 +1,20 @@
-// Local persistence + progress maths. localStorage keeps the MVP backend-free
-// and offline-first (a PWA that works on a plane). Swap for Supabase later.
+// Progress maths (pure, clock-driven). Persistence lives in datastore.js —
+// these functions only take a list of sessions and return numbers, which keeps
+// them trivially testable.
 //
 // Habit design follows the research: a *compliance rate* over a rolling window
 // (not a brittle consecutive-day counter), and a weekly grace day so one miss
 // is data rather than a "quit moment".
 
-const KEY = 'articulate.sessions.v1'
 const GRACE_PER_WEEK = 1
 const DAY_MS = 24 * 60 * 60 * 1000
-
-export function loadSessions() {
-  try {
-    const raw = localStorage.getItem(KEY)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
-export function saveSession(session) {
-  const all = loadSessions()
-  all.push({ id: cryptoId(), ts: Date.now(), ...session })
-  localStorage.setItem(KEY, JSON.stringify(all))
-  return all
-}
-
-export function clearSessions() {
-  localStorage.removeItem(KEY)
-}
-
-function cryptoId() {
-  try {
-    return crypto.randomUUID()
-  } catch {
-    return `s-${Date.now()}-${Math.random().toString(16).slice(2)}`
-  }
-}
 
 function dayKey(ts) {
   const d = new Date(ts)
   return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
 }
 
-/** Distinct calendar days with at least one session, newest first. */
+/** Distinct calendar days with at least one session. */
 export function activeDays(sessions) {
   const set = new Set()
   for (const s of sessions || []) set.add(dayKey(s.ts))
@@ -95,7 +67,7 @@ export function currentStreak(sessions) {
   return streak
 }
 
-/** Clarity score trend, oldest → newest, with a smoothing-free series. */
+/** Clarity score trend, oldest → newest. */
 export function clarityTrend(sessions) {
   return (sessions || [])
     .filter((s) => typeof s.score === 'number')

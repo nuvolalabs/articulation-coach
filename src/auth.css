@@ -1,0 +1,131 @@
+/* Auth screen + signed-in chrome (header user, sync dot, splash). */
+
+.auth-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card, #131a2b);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 22px;
+}
+
+.auth-brand {
+  margin-bottom: 18px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 16px;
+}
+
+.auth-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: #93a1bd;
+  padding: 9px;
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.auth-tab.active {
+  background: rgba(91, 140, 255, 0.18);
+  color: #e8eefc;
+}
+
+.auth-field {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.auth-field span {
+  display: block;
+  font-size: 12px;
+  color: #93a1bd;
+  margin-bottom: 5px;
+}
+
+.auth-field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: #e8eefc;
+  font: inherit;
+}
+
+.auth-field input:focus {
+  outline: 2px solid rgba(91, 140, 255, 0.5);
+  border-color: transparent;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.auth-error {
+  color: #ff8a8a;
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+
+.auth-info {
+  color: #6ee7b7;
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+
+.splash {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.topbar .who {
+  font-size: 12px;
+  color: #93a1bd;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #5b8cff;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}

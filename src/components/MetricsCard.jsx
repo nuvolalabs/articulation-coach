@@ -18,7 +18,7 @@ function Ring({ value }) {
   )
 }
 
-export default function MetricsCard({ result, playbackUrl, compare, onSave, onRetry, saved }) {
+export default function MetricsCard({ result, playbackUrl, compare, onSave, onRetry, saved, saving, error }) {
   if (!result) return null
   const delta = compare && typeof compare.score === 'number'
     ? result.score - compare.score
@@ -65,10 +65,12 @@ export default function MetricsCard({ result, playbackUrl, compare, onSave, onRe
         <audio className="playback" controls src={playbackUrl} />
       )}
 
+      {error && <p className="auth-error">{error}</p>}
+
       <div className="row">
-        <button className="btn ghost" onClick={onRetry}>Try again</button>
-        <button className="btn" onClick={onSave} disabled={saved}>
-          {saved ? 'Saved ✓' : 'Save & finish'}
+        <button className="btn ghost" onClick={onRetry} disabled={saving}>Try again</button>
+        <button className="btn" onClick={onSave} disabled={saved || saving}>
+          {saved ? 'Saved ✓' : saving ? 'Saving…' : 'Save & finish'}
         </button>
       </div>
     </div>

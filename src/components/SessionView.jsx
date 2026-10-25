@@ -3,7 +3,8 @@ import Recorder from './Recorder.jsx'
 import MetricsCard from './MetricsCard.jsx'
 import { DRILLS, drillById, weekForDay } from '../lib/drills.js'
 import { PACKS, pickPrompt } from '../lib/prompts.js'
-import { saveSession, programmeDay } from '../lib/storage.js'
+import { programmeDay } from '../lib/storage.js'
+import { insertSession } from '../lib/datastore.js'
 
 const BLOCKS = [
   { id: 'breath', title: 'Breath', seconds: 60,
@@ -34,6 +35,8 @@ export default function SessionView({ sessions, onSaved }) {
   const [attempt, setAttempt] = useState(null) // {result, playbackUrl, transcript}
   const [compare, setCompare] = useState(null)
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const block = BLOCKS[step]
   const drillOptions = block.id === 'drill'
@@ -61,21 +64,28 @@ export default function SessionView({ sessions, onSaved }) {
     setSaved(false)
   }
 
-  function save() {
-    saveSession({
-      kind: 'session',
-      week: week ? week.week : 1,
-      day,
-      drill: activeDrill ? activeDrill.id : null,
-      pack,
-      prompt,
-      score: attempt.result.score,
-      wpm: attempt.result.wpm,
-      fillerCount: attempt.result.fillerCount,
-      transcript: attempt.transcript
-    })
-    setSaved(true)
-    onSaved()
+  async function save() {
+    setSaving(true)
+    setSaveError('')
+    try {
+      await insertSession({
+        week: week ? week.week : 1,
+        day,
+        drill: activeDrill ? activeDrill.id : null,
+        pack,
+        prompt,
+        score: attempt.result.score,
+        wpm: attempt.result.wpm,
+        fillerCount: attempt.result.fillerCount,
+        transcript: attempt.transcript
+      })
+      setSaved(true)
+      await onSaved?.()
+    } catch (e) {
+      setSaveError(e.message || 'Could not save your session')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const pct = block.seconds ? Math.round(100 * (1 - secondsLeft / block.seconds)) : 0
@@ -117,6 +127,8 @@ export default function SessionView({ sessions, onSaved }) {
                 playbackUrl={attempt.playbackUrl}
                 compare={compare}
                 saved={saved}
+                saving={saving}
+                error={saveError}
                 onSave={save}
                 onRetry={() => { setAttempt(null); setCompare(null) }}
               />

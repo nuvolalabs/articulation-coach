@@ -48,6 +48,12 @@ describe('App shell + navigation', () => {
     fireEvent.click(screen.getAllByText('Progress')[0])
     expect(screen.getByRole('heading', { name: 'Progress' })).toBeTruthy()
   })
+
+  it('shows the signed-in user and a sign-out control', () => {
+    render(<App user={{ email: 'arun@work.com' }} onSignOut={() => {}} />)
+    expect(screen.getByText('arun@work.com')).toBeTruthy()
+    expect(screen.getByText('Sign out')).toBeTruthy()
+  })
 })
 
 describe('Daily session flow', () => {
@@ -82,12 +88,11 @@ describe('Daily session flow', () => {
 })
 
 describe('Progress from saved sessions', () => {
-  it('shows average clarity and compliance for seeded history', () => {
-    localStorage.setItem('articulate.sessions.v1', JSON.stringify([
+  it('shows average clarity and compliance for a given history', () => {
+    render(<App sessions={[
       { id: 'a', ts: Date.now(), score: 72, prompt: 'update' },
       { id: 'b', ts: Date.now() - 86400000, score: 66, prompt: 'pitch' }
-    ]))
-    render(<App />)
+    ]} />)
     fireEvent.click(screen.getAllByText('Progress')[0])
     expect(screen.getByText('69')).toBeTruthy() // (72 + 66) / 2
     expect(screen.getByText('30-day compliance')).toBeTruthy()
