@@ -26,6 +26,13 @@ A mobile-first PWA built from the evidence synthesis in
 - **Forgiving habit system** — a 30-day *compliance rate* (not a brittle streak) with a
   weekly grace day, because the median app streak dies at 4 days.
 
+## Accounts & sync
+
+Sign in with **email + password** (Supabase Auth). Your practice history is stored
+per-account in Postgres and protected by row-level security, so only you can read or
+write your own rows. A copy is cached in `localStorage` so the installed PWA still shows
+your progress offline; it re-syncs when you're back online.
+
 ## The honest bit
 
 The clarity score measures **delivery** (pace, fillers, intonation) — signals we can
@@ -38,12 +45,19 @@ when phoneme scoring isn't configured it falls back to delivery metrics.
 ## Run locally
 
 ```bash
+# 1. point the app at Supabase (see .env.local for the values)
+echo "VITE_SUPABASE_URL=https://<ref>.supabase.co"        >  .env.local
+echo "VITE_SUPABASE_PUBLISHABLE=sb_publishable_<key>"     >> .env.local
+
 npm install
 npm run dev        # http://localhost:5173
-npm test           # unit tests for the analysis core (vitest)
+npm test           # 56 tests: analysis core, progress maths, auth form, UI
 npm run build      # production build
 npm run preview    # serve the build on :4175
+npm run icons      # regenerate the PWA PNG icons
 ```
+
+Schema + RLS live in `supabase/sessions.sql` — apply it once per Supabase project.
 
 Best in Chrome/Edge/Safari (they support the Web Speech API for live transcription).
 Recording, playback and pitch analysis work in any browser with `MediaRecorder`.
@@ -57,8 +71,14 @@ src/
   lib/speech.js     Web Speech API wrapper (graceful when unsupported)
   lib/drills.js     the drill library + 12-week curriculum
   lib/prompts.js    corporate / sales / articulation prompt packs
-  lib/storage.js    localStorage sessions + compliance/streak maths
-  components/       SessionView, Recorder, MetricsCard, ProgressView, PlanView, DrillsView
+  lib/storage.js    pure progress maths (compliance/streak/trend) — clock-driven
+  lib/supabase.js   Supabase client (publishable key, RLS-protected)
+  lib/auth.jsx      AuthProvider / useAuth (session + sign-in/up/out)
+  lib/datastore.js  per-user session CRUD + offline localStorage cache
+  Root.jsx          composes auth + remote data around the presentational App
+  components/       AuthGate, SessionView, Recorder, MetricsCard, ProgressView, PlanView, DrillsView
+supabase/sessions.sql  sessions table + row-level security policies
+scripts/gen_icons.py   PWA PNG icons (stdlib only, no Pillow)
 api/score.js        serverless phoneme-scoring endpoint (integration point / stub)
 ```
 
@@ -68,11 +88,18 @@ api/score.js        serverless phoneme-scoring endpoint (integration point / stu
 vercel --prod
 ```
 
-`vercel.json` rewrites everything except `/api/*` to `index.html` (SPA) and routes
-`/api/*` to the serverless functions. No secrets are required for the MVP; set
-`AZURE_SPEECH_KEY` + `AZURE_SPEECH_REGION` only when enabling phoneme scoring.
+`vercel.json` rewrites everything to `index.html` (SPA); `/api/*` files deploy as
+functions automatically. Vite inlines `VITE_*` vars at build time, so set them on the
+Vercel project (production + preview) before building:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE` (public-safe — RLS is the real protection)
+
+Set `AZURE_SPEECH_KEY` + `AZURE_SPEECH_REGION` only when enabling phoneme scoring.
 
 ## Data & privacy
 
-All session data and audio stay on the device (localStorage / in-memory blobs). Nothing
-is uploaded in the MVP — a deliberate choice for a product that records your voice.
+**Audio never leaves the device** — recording, playback and pitch analysis all happen in
+the browser; only the resulting *metrics* (score, wpm, filler count, prompt, and the
+optional transcript) are saved to your account. Rows are scoped by row-level security to
+your `auth.uid()`, so the publishable key in the bundle cannot read anyone else's data.
